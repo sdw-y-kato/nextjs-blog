@@ -9,7 +9,7 @@ import { getSortedPostsData } from '../lib/posts';
 import { type } from 'node:os';
 
 export const getStaticProps: GetStaticProps = async() => {
-  const allPostsData = getSortedPostsData();
+  const allPostsData = await getSortedPostsData();
   return {
     props: {
       allPostsData,
