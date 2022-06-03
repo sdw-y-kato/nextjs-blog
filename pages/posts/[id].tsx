@@ -32,7 +32,7 @@ export default function Post({ postData }: Props) {
     );
 }
 
-export const getStaticProps = async ({ params }: { params: { id: string } }) => {
+export const getServerSideProps = async ({ params }: { params: { id: string } }) => {
     const postData = await getPostData(params.id);
     return {
         props: {
@@ -41,10 +41,3 @@ export const getStaticProps = async ({ params }: { params: { id: string } }) => 
     };
 }
 
-export async function getStaticPaths() {
-    const paths = await getAllPostIds();
-    return {
-        paths,
-        fallback: false,
-    };
-}
