@@ -32,7 +32,8 @@ export default function Post({ postData }: Props) {
     );
 }
 
-export const getServerSideProps = async ({ params }: { params: { id: string } }) => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
+    let params = Object[0];
     const postData = await getPostData(params.id);
     return {
         props: {
