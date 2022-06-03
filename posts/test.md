@@ -1,6 +1,6 @@
 ---
-title: 'testtest'
+title: 'SSR_test'
 date: '2020-01-01'
 ---
 
-あああ
+サーバーサイドレンダリングテスト
