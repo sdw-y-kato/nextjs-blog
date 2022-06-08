@@ -15,7 +15,8 @@ export async function getSortedPostsData() {
 
     const repoUrl = "https://api.github.com/repos/sdw-y-kato/nextjs-blog/contents/posts";
     const response = await fetch(repoUrl);
-    const files = await response.json();
+    let files = Object[0];
+    files = await response.json();
     const fileNames = files.map((file: { name: any; }) => file.name);
 
     const allPostsData = await Promise.all(fileNames.map(async (fileName: string) => {
@@ -29,7 +30,8 @@ export async function getSortedPostsData() {
 
         const repoUrl = `https://api.github.com/repos/sdw-y-kato/nextjs-blog/contents/posts/${id}.md`;
         const response = await fetch(repoUrl);
-        const file = await response.json();
+        let file = Object[0];
+        file = await response.json();
         const fileContents = base64.decode(file.content);
 
         // Use gray-matter to parse the post metadata section
@@ -61,7 +63,8 @@ export async function getAllPostIds() {
 
     const repoUrl = "https://api.github.com/repos/sdw-y-kato/nextjs-blog/contents/posts";
     const response = await fetch(repoUrl);
-    const files = await response.json();
+    let files = Object[0];
+    files = await response.json();
     const fileNames = files.map((file: { name: any; }) => file.name);
     // Returns an array that looks like this:
     // [
@@ -91,7 +94,8 @@ export async function getPostData(id: string) {
 
     const repoUrl = `https://api.github.com/repos/sdw-y-kato/nextjs-blog/contents/posts/${id}.md`;
     const response = await fetch(repoUrl);
-    const file = await response.json();
+    let file = Object[0];
+    file = await response.json();
     const fileContents = base64.decode(file.content);
     
 
