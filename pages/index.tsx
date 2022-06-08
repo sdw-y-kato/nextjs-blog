@@ -7,25 +7,38 @@ import utilStyles from '../styles/utils.module.css';
 
 import { getSortedPostsData } from '../lib/posts';
 import { type } from 'node:os';
+import useSWR from 'swr'
 
-export const getServerSideProps: GetServerSideProps = async() => {
-  const allPostsData = await getSortedPostsData();
-  return {
-    props: {
-      allPostsData,
-    },
-  };
-}
+// export const getServerSideProps: GetServerSideProps = async() => {
+//   const allPostsData = await getSortedPostsData();
+//   return {
+//     props: {
+//       allPostsData,
+//     },
+//   };
+// }
 
-type Props = {
-  allPostsData: {
-    id: string,
-    title: string,
-    date: string,
-  }[]
-};
+// type Props = {
+//   allPostsData: {
+//     id: string,
+//     title: string,
+//     date: string,
+//   }[]
+// };
 
-export default function Home({ allPostsData }: Props) {
+const fetcher = (url: string) => fetch(url)
+  .then(res => res.json());
+
+export default function Home() {
+  const { data, error } = useSWR(
+    'api/getSortedPostsData',
+    fetcher
+  );
+
+  if (error) return <div>Failed to load</div>
+  if (!data) return <div>Loading...</div>
+
+  console.log(data.allPostsDataSort);
   return (
     <Layout home>
       <Head>
@@ -41,7 +54,7 @@ export default function Home({ allPostsData }: Props) {
       <section className={`${utilStyles.headingMd} ${utilStyles.padding1px}`}>
         <h2 className={utilStyles.headingLg}>Blog test#1</h2>
         <ul className={utilStyles.list}>
-          {allPostsData.map(({ id, date, title }) => (
+          {data.allPostsDataSort.map(({ id, date, title }: {id: string, date: string, title: string}) => (
             <li className={utilStyles.listItem} key={id}>
               <Link href={`/posts/${id}`}>
                 <a>{title}</a>
