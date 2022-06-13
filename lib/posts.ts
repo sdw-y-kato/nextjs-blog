@@ -5,6 +5,7 @@ import { remark } from 'remark';
 import html from 'remark-html';
 import fetch from 'node-fetch';
 import { string } from 'prop-types';
+import { type } from 'os';
 const base64 = require('js-base64').Base64;
 
 const postsDirectory = path.join(process.cwd(), 'posts');
@@ -15,47 +16,51 @@ export async function getSortedPostsData() {
 
     const repoUrl = "https://api.github.com/repos/sdw-y-kato/nextjs-blog/contents/posts";
     const response = await fetch(repoUrl);
-    let files = Object[0];
-    files = await response.json();
-    const fileNames = files.map((file: { name: any; }) => file.name);
+    const files = await response.json();
+    if (files instanceof Array) {
+        const fileNames = files.map((file: { name: any; }) => file.name);
 
-    const allPostsData = await Promise.all(fileNames.map(async (fileName: string) => {
-        // Remove ".md" from file name to get id
-        const id = fileName.replace(/\.md$/, '');
+        const allPostsData = await Promise.all(fileNames.map(async (fileName: string) => {
+            // Remove ".md" from file name to get id
+            const id = fileName.replace(/\.md$/, '');
 
-        // Read markdown file as string
-        // const fullPath = path.join(postsDirectory, fileName);
-        // const fileContents = fs.readFileSync(fullPath, 'utf8');
+            // Read markdown file as string
+            // const fullPath = path.join(postsDirectory, fileName);
+            // const fileContents = fs.readFileSync(fullPath, 'utf8');
 
 
-        const repoUrl = `https://api.github.com/repos/sdw-y-kato/nextjs-blog/contents/posts/${id}.md`;
-        const response = await fetch(repoUrl);
-        let file = Object[0];
-        file = await response.json();
-        const fileContents = base64.decode(file.content);
+            const repoUrl = `https://api.github.com/repos/sdw-y-kato/nextjs-blog/contents/posts/${id}.md`;
+            const response = await fetch(repoUrl);
+            let file = await response.json();
+            if (file instanceof Array) {
+                const file: { [key: string]: any; } = {};
+                const fileContents = base64.decode(file.content);
 
-        // Use gray-matter to parse the post metadata section
-        const matterResult = matter(fileContents);
+                // Use gray-matter to parse the post metadata section
+                const matterResult = matter(fileContents);
 
-        // Combine the data with the id
-        return {
-            id,
-            ...(matterResult.data as {
-                date: string
-            })
-        };
-    }));
+                // Combine the data with the id
+                return {
+                    id,
+                    ...(matterResult.data as {
+                        date: string
+                    })
+                };
+            }
+        }));
 
-    // Sort posts by date
-    return allPostsData.sort(({ date: a }, { date: b }) => {
-        if (a < b) {
-            return 1;
-        } else if (a > b) {
-            return -1;
-        } else {
-            return 0;
-        }
-    });
+        // Sort posts by date
+        return allPostsData.sort(({ date: a }: any, { date: b }: any) => {
+            if (a < b) {
+                return 1;
+            } else if (a > b) {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
+    }
+
 }
 
 export async function getAllPostIds() {
@@ -63,29 +68,32 @@ export async function getAllPostIds() {
 
     const repoUrl = "https://api.github.com/repos/sdw-y-kato/nextjs-blog/contents/posts";
     const response = await fetch(repoUrl);
-    let files = Object[0];
-    files = await response.json();
-    const fileNames = files.map((file: { name: any; }) => file.name);
-    // Returns an array that looks like this:
-    // [
-    //   {
-    //     params: {
-    //       id: 'ssg-ssr'
-    //     }
-    //   },
-    //   {
-    //     params: {
-    //       id: 'pre-rendering'
-    //     }
-    //   }
-    // ]
-    return fileNames.map((fileName: string) => {
-        return {
-            params: {
-                id: fileName.replace(/\.md$/, ''),
-            },
-        };
-    });
+    const files = await response.json();
+    if (files instanceof Array) {
+        const fileNames = files.map((file: { name: any; }) => file.name);
+        // Returns an array that looks like this:
+        // [
+        //   {
+        //     params: {
+        //       id: 'ssg-ssr'
+        //     }
+        //   },
+        //   {
+        //     params: {
+        //       id: 'pre-rendering'
+        //     }
+        //   }
+        // ]
+        return fileNames.map((fileName: string) => {
+            return {
+                params: {
+                    id: fileName.replace(/\.md$/, ''),
+                },
+            };
+        });
+    } else {
+        return null;
+    }
 }
 
 export async function getPostData(id: string) {
@@ -94,25 +102,26 @@ export async function getPostData(id: string) {
 
     const repoUrl = `https://api.github.com/repos/sdw-y-kato/nextjs-blog/contents/posts/${id}.md`;
     const response = await fetch(repoUrl);
-    let file = Object[0];
-    file = await response.json();
-    const fileContents = base64.decode(file.content);
+    let file = await response.json();
+    if (file instanceof Array) {
+        const file: { [key: string]: any; } = { content: string }
+        const fileContents = base64.decode(file.content);
+
+        // Use gray-matter to parse the post metadata section
+        const matterResult = matter(fileContents);
+
+        // Use remark to convert markdown into HTML string
+        const processedContent = await remark()
+            .use(html)
+            .process(matterResult.content);
+        const contentHtml = processedContent.toString();
+
+        // Combine the data with the id
+        return {
+            id,
+            contentHtml,
+            ...matterResult.data
+        };
+    }
     
-
-
-    // Use gray-matter to parse the post metadata section
-    const matterResult = matter(fileContents);
-
-    // Use remark to convert markdown into HTML string
-    const processedContent = await remark()
-        .use(html)
-        .process(matterResult.content);
-    const contentHtml = processedContent.toString();
-
-    // Combine the data with the id
-    return {
-        id,
-        contentHtml,
-        ...matterResult.data
-    };
 }
